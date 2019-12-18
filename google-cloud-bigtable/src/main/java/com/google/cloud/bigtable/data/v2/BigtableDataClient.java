@@ -25,6 +25,7 @@ import com.google.api.gax.rpc.ServerStream;
 import com.google.api.gax.rpc.ServerStreamingCallable;
 import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.bigtable.data.v2.models.BulkMutation;
+import com.google.cloud.bigtable.data.v2.models.BulkMutationBatcher;
 import com.google.cloud.bigtable.data.v2.models.ConditionalRowMutation;
 import com.google.cloud.bigtable.data.v2.models.Filters.Filter;
 import com.google.cloud.bigtable.data.v2.models.KeyOffset;
@@ -877,6 +878,12 @@ public class BigtableDataClient implements AutoCloseable {
    */
   public UnaryCallable<RowMutation, Void> mutateRowCallable() {
     return stub.mutateRowCallable();
+  }
+
+  /** @deprecated Please use {@link #newBulkMutationBatcher(String)} API. */
+  @Deprecated
+  public BulkMutationBatcher newBulkMutationBatcher() {
+    return new BulkMutationBatcher(stub.bulkMutateRowsBatchingCallable());
   }
 
   /**
