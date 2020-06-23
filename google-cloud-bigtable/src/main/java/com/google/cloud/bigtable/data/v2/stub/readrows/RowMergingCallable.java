@@ -23,6 +23,8 @@ import com.google.bigtable.v2.ReadRowsRequest;
 import com.google.bigtable.v2.ReadRowsResponse;
 import com.google.cloud.bigtable.data.v2.models.RowAdapter;
 import com.google.cloud.bigtable.data.v2.models.RowAdapter.RowBuilder;
+import com.google.cloud.bigtable.gaxx.reframing.PrefetchingResponseObserver;
+import com.google.cloud.bigtable.gaxx.reframing.Reframer;
 import com.google.cloud.bigtable.gaxx.reframing.ReframingResponseObserver;
 
 /**
@@ -45,13 +47,38 @@ public class RowMergingCallable<RowT> extends ServerStreamingCallable<ReadRowsRe
     this.rowAdapter = rowAdapter;
   }
 
+  private static final String CBT_ROWMERGE_MODE = System.getenv("CBT_ROWMERGE_MODE");
+  private static final String CBT_PREFETCH = System.getenv("CBT_PREFETCH");
+
   @Override
   public void call(
       ReadRowsRequest request, ResponseObserver<RowT> responseObserver, ApiCallContext context) {
     RowBuilder<RowT> rowBuilder = rowAdapter.createRowBuilder();
-    RowMerger<RowT> merger = new RowMerger<>(rowBuilder);
-    ReframingResponseObserver<ReadRowsResponse, RowT> innerObserver =
+
+    Reframer<RowT, ReadRowsResponse> merger;
+    switch (CBT_ROWMERGE_MODE) {
+      case "original":
+        merger = new RowMerger<>(rowBuilder);
+        break;
+      case "batch":
+        merger = new RowMerger2<>(rowBuilder);
+        break;
+      default:
+        throw new RuntimeException("CBT_ROWMERGE_BATCH env doesnt have appropriate value");
+    }
+
+    ResponseObserver<ReadRowsResponse> innerObserver =
         new ReframingResponseObserver<>(responseObserver, merger);
+
+    switch (CBT_PREFETCH) {
+      case "disabled":
+        break;
+      case "enabled":
+        innerObserver = new PrefetchingResponseObserver<>(innerObserver, 1);
+        break;
+      default:
+        throw new RuntimeException("CBT_PREFETCH is invalid");
+    }
     inner.call(request, innerObserver, context);
   }
 }

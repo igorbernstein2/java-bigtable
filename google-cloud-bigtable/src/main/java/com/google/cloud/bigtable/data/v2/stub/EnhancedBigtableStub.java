@@ -15,6 +15,7 @@
  */
 package com.google.cloud.bigtable.data.v2.stub;
 
+import com.google.api.core.ApiFunction;
 import com.google.api.core.BetaApi;
 import com.google.api.core.InternalApi;
 import com.google.api.gax.batching.Batcher;
@@ -86,6 +87,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.ByteString;
+import io.grpc.ManagedChannelBuilder;
 import io.opencensus.stats.Stats;
 import io.opencensus.stats.StatsRecorder;
 import io.opencensus.tags.TagKey;
@@ -129,6 +131,8 @@ public class EnhancedBigtableStub implements AutoCloseable {
   private final UnaryCallable<ConditionalRowMutation, Boolean> checkAndMutateRowCallable;
   private final UnaryCallable<ReadModifyWriteRow, Row> readModifyWriteRowCallable;
 
+  private static final String CBT_EXECUTOR_MODE = System.getenv("CBT_EXECUTOR_MODE");
+
   public static EnhancedBigtableStub create(EnhancedBigtableStubSettings settings)
       throws IOException {
     settings = finalizeSettings(settings, Tags.getTagger(), Stats.getStatsRecorder());
@@ -154,12 +158,26 @@ public class EnhancedBigtableStub implements AutoCloseable {
       builder.setCredentialsProvider(FixedCredentialsProvider.create(credentials));
 
       // Inject the primer
-      InstantiatingGrpcChannelProvider transportProvider =
-          (InstantiatingGrpcChannelProvider) settings.getTransportChannelProvider();
+      InstantiatingGrpcChannelProvider.Builder transportProvider =
+          ((InstantiatingGrpcChannelProvider) settings.getTransportChannelProvider()).toBuilder();
+
+      switch (CBT_EXECUTOR_MODE) {
+        case "original":
+          break;
+        case "native":
+          transportProvider.setChannelConfigurator(new ApiFunction<ManagedChannelBuilder, ManagedChannelBuilder>() {
+                        @Override
+                        public ManagedChannelBuilder apply(ManagedChannelBuilder managedChannelBuilder) {
+                          return managedChannelBuilder.executor(null);
+                        }
+                      });
+          break;
+        default:
+          throw new RuntimeException("CBT_EXECUTOR_MODE env var is invalid");
+      }
 
       builder.setTransportChannelProvider(
           transportProvider
-              .toBuilder()
               .setChannelPrimer(
                   BigtableChannelPrimer.create(
                       credentials,
@@ -213,6 +231,7 @@ public class EnhancedBigtableStub implements AutoCloseable {
             .setTagger(tagger)
             .setStatsAttributes(attributes)
             .build());
+
     return builder.build();
   }
 
