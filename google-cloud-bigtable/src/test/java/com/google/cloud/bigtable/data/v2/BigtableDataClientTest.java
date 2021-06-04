@@ -87,7 +87,7 @@ public class BigtableDataClientTest {
   }
 
   @Test
-  public void proxyCloseTest() throws Exception {
+  public void proxyCloseTest() {
     bigtableDataClient.close();
     Mockito.verify(mockStub).close();
   }
@@ -314,9 +314,9 @@ public class BigtableDataClientTest {
   public void mutateRowTest() {
     Mockito.when(mockMutateRowCallable.futureCall(any(RowMutation.class)))
         .thenAnswer(
-            new Answer() {
+            new Answer<ApiFuture<Empty>>() {
               @Override
-              public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
+              public ApiFuture<Empty> answer(InvocationOnMock invocationOnMock) {
                 return ApiFutures.immediateFuture(Empty.getDefaultInstance());
               }
             });
@@ -345,9 +345,9 @@ public class BigtableDataClientTest {
   public void bulkMutatesRowTest() {
     Mockito.when(mockBulkMutateRowsCallable.futureCall(any(BulkMutation.class)))
         .thenAnswer(
-            new Answer() {
+            new Answer<ApiFuture<Empty>>() {
               @Override
-              public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
+              public ApiFuture<Empty> answer(InvocationOnMock invocationOnMock) {
                 return ApiFutures.immediateFuture(Empty.getDefaultInstance());
               }
             });

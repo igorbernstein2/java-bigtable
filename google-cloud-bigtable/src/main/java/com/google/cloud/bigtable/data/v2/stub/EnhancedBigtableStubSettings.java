@@ -51,7 +51,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import org.threeten.bp.Duration;
 
@@ -84,9 +83,6 @@ import org.threeten.bp.Duration;
  * }</pre>
  */
 public class EnhancedBigtableStubSettings extends StubSettings<EnhancedBigtableStubSettings> {
-  private static final Logger logger =
-      Logger.getLogger(EnhancedBigtableStubSettings.class.getName());
-
   // The largest message that can be received is a 256 MB ReadRowsResponse.
   private static final int MAX_MESSAGE_SIZE = 256 * 1024 * 1024;
   private static final String SERVER_DEFAULT_APP_PROFILE_ID = "";
@@ -119,7 +115,6 @@ public class EnhancedBigtableStubSettings extends StubSettings<EnhancedBigtableS
           .setRetryDelayMultiplier(2.0)
           .setMaxRetryDelay(Duration.ofMinutes(1))
           .setMaxAttempts(10)
-          .setJittered(true)
           .setInitialRpcTimeout(Duration.ofMinutes(5))
           .setRpcTimeoutMultiplier(2.0)
           .setMaxRpcTimeout(Duration.ofMinutes(5))
@@ -155,8 +150,8 @@ public class EnhancedBigtableStubSettings extends StubSettings<EnhancedBigtableS
   private final String instanceId;
   private final String appProfileId;
   private final boolean isRefreshingChannel;
-  private ImmutableList<String> primedTableIds;
-  private HeaderTracer headerTracer;
+  private final ImmutableList<String> primedTableIds;
+  private final HeaderTracer headerTracer;
 
   private final ServerStreamingCallSettings<Query, Row> readRowsSettings;
   private final UnaryCallSettings<Query, Row> readRowSettings;
@@ -570,7 +565,7 @@ public class EnhancedBigtableStubSettings extends StubSettings<EnhancedBigtableS
       copyRetrySettings(baseDefaults.mutateRowSettings(), mutateRowSettings);
 
       long maxBulkMutateElementPerBatch = 100L;
-      // Enables bulkMutate to support 10 outstanding batches upto per channel or up to 20K entries.
+      // Enables bulkMutate to support 10 outstanding batches up to per channel or up to 20K entries.
       long maxBulkMutateOutstandingElementCount =
           Math.min(20_000L, 10L * maxBulkMutateElementPerBatch * getDefaultChannelPoolSize());
 

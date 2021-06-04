@@ -43,17 +43,17 @@ import org.threeten.bp.Duration;
 
 /**
  * A channel warmer that ensures that a Bigtable channel is ready to be used before being added to
- * the active {@link com.google.api.gax.grpc.ChannelPool}.
+ * the active {@code ChannelPool}.
  *
  * <p>This implementation is subject to change in the future, but currently it will prime the
  * channel by sending a ReadRow request for a hardcoded, non-existent row key.
  */
 @BetaApi("Channel priming is not currently stable and might change in the future")
 class BigtableChannelPrimer implements ChannelPrimer {
-  private static Logger LOG = Logger.getLogger(BigtableChannelPrimer.class.toString());
+  private static final Logger LOG = Logger.getLogger(BigtableChannelPrimer.class.toString());
 
   static ByteString PRIMING_ROW_KEY = ByteString.copyFromUtf8("nonexistent-priming-row");
-  private static Duration PRIME_REQUEST_TIMEOUT = Duration.ofSeconds(30);
+  private static final Duration PRIME_REQUEST_TIMEOUT = Duration.ofSeconds(30);
 
   private final EnhancedBigtableStubSettings settingsTemplate;
   private final List<String> tableIds;
@@ -82,7 +82,6 @@ class BigtableChannelPrimer implements ChannelPrimer {
                 .getRetrySettings()
                 .toBuilder()
                 .setMaxAttempts(1)
-                .setJittered(false)
                 .setInitialRpcTimeout(PRIME_REQUEST_TIMEOUT)
                 .setMaxRpcTimeout(PRIME_REQUEST_TIMEOUT)
                 .setTotalTimeout(PRIME_REQUEST_TIMEOUT)

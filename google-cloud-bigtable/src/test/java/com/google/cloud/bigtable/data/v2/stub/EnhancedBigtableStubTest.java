@@ -322,7 +322,6 @@ public class EnhancedBigtableStubTest {
   private static class FakeDataService extends BigtableGrpc.BigtableImplBase {
     final BlockingQueue<ReadRowsRequest> requests = Queues.newLinkedBlockingDeque();
 
-    @SuppressWarnings("unchecked")
     ReadRowsRequest popLastRequest() throws InterruptedException {
       return requests.poll(1, TimeUnit.SECONDS);
     }

@@ -52,7 +52,7 @@ public class BulkMutateIT {
             (BatcherImpl<RowMutationEntry, Void, BulkMutation, Void>)
                 client.newBulkMutationBatcher(testEnvRule.env().getTableId())) {
       FlowControlEventStats events = batcher.getFlowController().getFlowControlEventStats();
-      long initialThreashold =
+      long initialThreshold =
           Objects.requireNonNull(batcher.getFlowController().getCurrentElementCountLimit());
       assertThat(batcher.getFlowController().getCurrentElementCountLimit())
           .isNotEqualTo(batcher.getFlowController().getMinElementCountLimit());
@@ -69,7 +69,7 @@ public class BulkMutateIT {
       assertThat(events.getLastFlowControlEvent()).isNotNull();
       // Verify that the threshold is adjusted
       assertThat(batcher.getFlowController().getCurrentElementCountLimit())
-          .isNotEqualTo(initialThreashold);
+          .isNotEqualTo(initialThreshold);
       // Query a key to make sure the write succeeded
       Row row =
           testEnvRule

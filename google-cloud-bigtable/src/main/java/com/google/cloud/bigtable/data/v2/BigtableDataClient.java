@@ -569,7 +569,7 @@ public class BigtableDataClient implements AutoCloseable {
   public ApiFuture<Row> readRowAsync(String tableId, ByteString rowKey, @Nullable Filter filter) {
     Query query = Query.create(tableId).rowKey(rowKey);
     if (filter != null) {
-      query = query.filter(filter);
+      query.filter(filter);
     }
     return readRowCallable().futureCall(query);
   }
@@ -843,7 +843,7 @@ public class BigtableDataClient implements AutoCloseable {
   /**
    * Convenience method to synchronously return a sample of row keys in the table. The returned row
    * keys will delimit contiguous sections of the table of approximately equal size, which can be
-   * used to break up the data for distributed tasks like mapreduces.
+   * used to break up the data for distributed tasks like mapreduce.
    *
    * <p>Sample code:
    *
@@ -869,7 +869,7 @@ public class BigtableDataClient implements AutoCloseable {
   /**
    * Convenience method to asynchronously return a sample of row keys in the table. The returned row
    * keys will delimit contiguous sections of the table of approximately equal size, which can be
-   * used to break up the data for distributed tasks like mapreduces.
+   * used to break up the data for distributed tasks like mapreduce.
    *
    * <p>Sample code:
    *
@@ -899,7 +899,7 @@ public class BigtableDataClient implements AutoCloseable {
   /**
    * Returns a sample of row keys in the table. The returned row keys will delimit contiguous
    * sections of the table of approximately equal size, which can be used to break up the data for
-   * distributed tasks like mapreduces. The returned callable object allows for customization of api
+   * distributed tasks like mapreduce. The returned callable object allows for customization of api
    * invocation.
    *
    * <p>Sample code:
